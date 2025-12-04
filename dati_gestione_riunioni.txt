@@ -1,2 +1,5 @@
 https://tobnvbhwymkepfslljad.supabase.co           URL
 sb_publishable_UiD6JI2QCzHYQHhG4LTeaQ_lfzKtjoH    Key
+
+gestione-riunioni.vercel.app
+http://localhost:5173/

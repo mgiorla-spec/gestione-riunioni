@@ -45,22 +45,7 @@ const MeetingManagementApp = () => {
   
   const [tasks, setTasks] = useState(() => {
     const saved = localStorage.getItem('tasks');
-    if (saved) {
-      const parsed = JSON.parse(saved);
-      // Migrate old comments to new format if needed
-      return parsed.map(task => ({
-        ...task,
-        comments: Array.isArray(task.comments) && task.comments.length > 0 && typeof task.comments[0] === 'string'
-          ? task.comments.map((text, idx) => ({
-              id: Date.now() + idx,
-              text,
-              author: 'Sistema',
-              timestamp: new Date().toISOString()
-            }))
-          : task.comments || []
-      }));
-    }
-    return [];
+    return saved ? JSON.parse(saved) : [];
   });
   
   const [showAddParticipantForm, setShowAddParticipantForm] = useState(false);
@@ -79,9 +64,6 @@ const MeetingManagementApp = () => {
   const [newResponseText, setNewResponseText] = useState({});
   const [editingResponseId, setEditingResponseId] = useState(null);
   const [editingResponseText, setEditingResponseText] = useState('');
-  const [newTaskComment, setNewTaskComment] = useState({});
-  const [editingCommentId, setEditingCommentId] = useState(null);
-  const [editingCommentText, setEditingCommentText] = useState('');
   
   const [newTopic, setNewTopic] = useState({
     meetingDate: '',
@@ -252,60 +234,6 @@ const MeetingManagementApp = () => {
 
   const updateTaskStatus = (taskId, status) => {
     setTasks(tasks.map(t => t.id === taskId ? { ...t, status } : t));
-  };
-
-  const addTaskComment = (taskId) => {
-    const text = newTaskComment[taskId];
-    if (!text || !text.trim()) return;
-    
-    const comment = {
-      id: Date.now(),
-      text: text.trim(),
-      author: currentUser,
-      timestamp: new Date().toISOString()
-    };
-    
-    setTasks(tasks.map(t => {
-      if (t.id === taskId) {
-        return { ...t, comments: [...(t.comments || []), comment] };
-      }
-      return t;
-    }));
-    
-    setNewTaskComment({ ...newTaskComment, [taskId]: '' });
-    addNotification('Commento aggiunto');
-  };
-
-  const updateTaskComment = (taskId, commentId) => {
-    if (!editingCommentText.trim()) return;
-    
-    setTasks(tasks.map(t => {
-      if (t.id === taskId) {
-        return {
-          ...t,
-          comments: t.comments.map(c => 
-            c.id === commentId ? { ...c, text: editingCommentText.trim() } : c
-          )
-        };
-      }
-      return t;
-    }));
-    
-    setEditingCommentId(null);
-    setEditingCommentText('');
-    addNotification('Commento modificato');
-  };
-
-  const deleteTaskComment = (taskId, commentId) => {
-    if (window.confirm('Eliminare questo commento?')) {
-      setTasks(tasks.map(t => {
-        if (t.id === taskId) {
-          return { ...t, comments: t.comments.filter(c => c.id !== commentId) };
-        }
-        return t;
-      }));
-      addNotification('Commento eliminato');
-    }
   };
 
   const archiveTask = (taskId) => {
@@ -756,94 +684,6 @@ const MeetingManagementApp = () => {
                   <button onClick={() => updateTaskStatus(task.id, 'todo')} className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${task.status === 'todo' ? 'bg-slate-500 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}>Da Fare</button>
                   <button onClick={() => updateTaskStatus(task.id, 'in-progress')} className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${task.status === 'in-progress' ? 'bg-blue-500 text-white' : 'bg-blue-100 text-blue-700 hover:bg-blue-200'}`}>In Corso</button>
                   <button onClick={() => updateTaskStatus(task.id, 'completed')} className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${task.status === 'completed' ? 'bg-emerald-500 text-white' : 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'}`}>Completata</button>
-                </div>
-
-                {/* Sezione Commenti */}
-                <div className="mt-4">
-                  <h4 className="font-semibold text-slate-700 mb-2 flex items-center gap-2">
-                    <MessageSquare size={16} />
-                    Commenti {task.comments && task.comments.length > 0 && `(${task.comments.length})`}
-                  </h4>
-                  
-                  {/* Lista Commenti */}
-                  {task.comments && task.comments.length > 0 && (
-                    <div className="space-y-2 mb-3">
-                      {task.comments.map(comment => (
-                        <div key={comment.id} className="bg-slate-50 p-3 rounded-lg border-l-4 border-purple-400">
-                          {editingCommentId === comment.id ? (
-                            <div>
-                              <textarea 
-                                value={editingCommentText} 
-                                onChange={(e) => setEditingCommentText(e.target.value)} 
-                                className="w-full p-2 border rounded mb-2"
-                                rows="2"
-                              />
-                              <div className="flex gap-2">
-                                <button 
-                                  onClick={() => updateTaskComment(task.id, comment.id)} 
-                                  className="px-3 py-1 bg-emerald-500 text-white rounded text-sm hover:bg-emerald-600"
-                                >
-                                  Salva
-                                </button>
-                                <button 
-                                  onClick={() => { setEditingCommentId(null); setEditingCommentText(''); }} 
-                                  className="px-3 py-1 bg-slate-300 text-slate-700 rounded text-sm hover:bg-slate-400"
-                                >
-                                  Annulla
-                                </button>
-                              </div>
-                            </div>
-                          ) : (
-                            <div>
-                              <div className="flex justify-between items-start mb-2">
-                                <div>
-                                  <span className="font-medium text-slate-800">{comment.author}</span>
-                                  <span className="text-xs text-slate-400 ml-2">
-                                    {new Date(comment.timestamp).toLocaleString('it-IT')}
-                                  </span>
-                                </div>
-                                <div className="flex gap-2">
-                                  <button 
-                                    onClick={() => { setEditingCommentId(comment.id); setEditingCommentText(comment.text); }} 
-                                    className="text-slate-400 hover:text-indigo-600"
-                                    title="Modifica commento"
-                                  >
-                                    <Edit2 size={14} />
-                                  </button>
-                                  <button 
-                                    onClick={() => deleteTaskComment(task.id, comment.id)} 
-                                    className="text-slate-400 hover:text-rose-600"
-                                    title="Elimina commento"
-                                  >
-                                    <Trash2 size={14} />
-                                  </button>
-                                </div>
-                              </div>
-                              <p className="text-slate-700 text-sm">{comment.text}</p>
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                  
-                  {/* Campo Nuovo Commento */}
-                  <div className="flex gap-2">
-                    <input 
-                      type="text" 
-                      value={newTaskComment[task.id] || ''} 
-                      onChange={(e) => setNewTaskComment({ ...newTaskComment, [task.id]: e.target.value })}
-                      onKeyPress={(e) => e.key === 'Enter' && addTaskComment(task.id)}
-                      placeholder="Aggiungi un commento..." 
-                      className="flex-1 px-4 py-2 border-2 border-slate-200 rounded-lg focus:border-purple-500 focus:outline-none text-sm"
-                    />
-                    <button 
-                      onClick={() => addTaskComment(task.id)} 
-                      className="px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors text-sm font-medium"
-                    >
-                      Invia
-                    </button>
-                  </div>
                 </div>
 
                 {task.status === 'completed' && (
