@@ -17,16 +17,7 @@ const MeetingManagementApp = () => {
     }
   `;
 
-  // PASSWORD DI ACCESSO - Modificala qui sotto
-  const ACCESS_PASSWORD = "rt2026";
-
   // Stati
-  const [isAuthenticated, setIsAuthenticated] = useState(() => {
-    return sessionStorage.getItem('authenticated') === 'true';
-  });
-  const [passwordInput, setPasswordInput] = useState('');
-  const [passwordError, setPasswordError] = useState('');
-  
   const [currentUser, setCurrentUser] = useState('Mario Rossi');
   const [currentView, setCurrentView] = useState('dashboard');
   const [filterByUser, setFilterByUser] = useState('');
@@ -77,25 +68,6 @@ const MeetingManagementApp = () => {
     'Richiesta attività ad altro ente': 'bg-blue-50 border-blue-300',
     'Informazione': 'bg-emerald-50 border-emerald-300',
     'Richiesta informazione': 'bg-purple-50 border-purple-300'
-  };
-
-  // Funzione login
-  const handleLogin = (e) => {
-    e.preventDefault();
-    if (passwordInput === ACCESS_PASSWORD) {
-      setIsAuthenticated(true);
-      sessionStorage.setItem('authenticated', 'true');
-      setPasswordError('');
-    } else {
-      setPasswordError('Password non corretta. Riprova.');
-      setPasswordInput('');
-    }
-  };
-
-  const handleLogout = () => {
-    setIsAuthenticated(false);
-    sessionStorage.removeItem('authenticated');
-    setPasswordInput('');
   };
 
   // Carica dati iniziali
@@ -629,56 +601,6 @@ const MeetingManagementApp = () => {
     );
   }
 
-  // Schermata di Login
-  if (!isAuthenticated) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center p-4">
-        <div className="bg-white rounded-3xl shadow-2xl p-8 md:p-12 max-w-md w-full">
-          <div className="text-center mb-8">
-            <div className="w-20 h-20 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
-              <Users size={40} className="text-white" />
-            </div>
-            <h1 className="text-3xl font-bold text-slate-800 mb-2">Gestione Riunioni</h1>
-            <p className="text-slate-600">Inserisci la password per accedere</p>
-          </div>
-
-          <form onSubmit={handleLogin} className="space-y-4">
-            <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-2">Password</label>
-              <input
-                type="password"
-                value={passwordInput}
-                onChange={(e) => setPasswordInput(e.target.value)}
-                className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:border-indigo-500 focus:outline-none text-lg"
-                placeholder="Inserisci la password"
-                autoFocus
-              />
-              {passwordError && (
-                <p className="text-rose-600 text-sm mt-2 flex items-center gap-2">
-                  <AlertCircle size={16} />
-                  {passwordError}
-                </p>
-              )}
-            </div>
-
-            <button
-              type="submit"
-              className="w-full py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-semibold text-lg hover:shadow-lg transition-all duration-300 transform hover:scale-105"
-            >
-              Accedi
-            </button>
-          </form>
-
-          <div className="mt-8 p-4 bg-slate-50 rounded-xl border-2 border-slate-200">
-            <p className="text-xs text-slate-600 text-center">
-              <strong>Nota:</strong> Questa password è condivisa con tutti i membri del team. Non condividerla con persone non autorizzate.
-            </p>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   // Render functions (using same UI as localStorage version)
   const renderDashboard = () => (
     <div className="space-y-6">
@@ -995,14 +917,6 @@ const MeetingManagementApp = () => {
                 <select value={currentUser} onChange={(e) => setCurrentUser(e.target.value)} className="w-12 h-12 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 text-white font-bold text-xl border-2 border-white shadow-lg cursor-pointer" style={{ WebkitAppearance: 'none', textAlign: 'center' }}>
                   {participants.map(p => <option key={p} value={p}>{p.split(' ').map(n => n[0]).join('')}</option>)}
                 </select>
-                <button
-                  onClick={handleLogout}
-                  className="ml-2 px-4 py-2 bg-rose-500 text-white rounded-lg hover:bg-rose-600 transition-colors text-sm font-medium flex items-center gap-2"
-                  title="Esci"
-                >
-                  <X size={16} />
-                  Esci
-                </button>
               </div>
             </div>
           </div>
